@@ -113,7 +113,7 @@ class Playlist(EventEmitter, Serializable):
             **meta
         )
         self._add_entry(entry, head=head)
-        return entry, len(self.entries)
+        return entry, len(self.entries) if (not head) else min(len(self.entries), 1)
 
     async def add_stream_entry(self, song_url, info=None, **meta):
         if info is None:
