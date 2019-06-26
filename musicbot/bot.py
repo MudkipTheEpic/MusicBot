@@ -1286,6 +1286,27 @@ class MusicBot(discord.Client):
         """
         return await self._cmd_play(message, player, channel, author, permissions, leftover_args, song_url, True)
 
+    async def cmd_playskip(self, message, player, channel, author, permissions, leftover_args, song_url):
+        """
+        Usage:
+            {command_prefix}playskip song_link
+            {command_prefix}playskip text to search for
+            {command_prefix}playskip spotify_uri
+
+        Adds the song to the beginning of the playlist and skips the currently playing song.  If a link is not provided, the first
+        result from a youtube search is added to the front of the queue.
+        If enabled in the config, the bot will also support Spotify URIs, however
+        it will use the metadata (e.g song name and artist) to find a YouTube
+        equivalent of the song. Streaming from Spotify is not possible.
+        """
+        resp = await self._cmd_play(message, player, channel, author, permissions, leftover_args, song_url, True)
+        player.skip()
+
+        # Fix message to properly display "Up next!"
+        resp._content = resp._content[:resp._content.index('Position in queue:')] + 'Position in queue: Up next!'
+
+        return resp
+
     async def cmd_play(self, message, player, channel, author, permissions, leftover_args, song_url):
         """
         Usage:
@@ -1303,18 +1324,12 @@ class MusicBot(discord.Client):
 
     async def _cmd_play(self, message, player, channel, author, permissions, leftover_args, song_url, head=False):
         """
-        Usage:
-            {command_prefix}play song_link
-            {command_prefix}play text to search for
-            {command_prefix}play spotify_uri
-
-        Adds the song to the playlist.  If a link is not provided, the first
-        result from a youtube search is added to the queue.
-
-        If enabled in the config, the bot will also support Spotify URIs, however
-        it will use the metadata (e.g song name and artist) to find a YouTube
-        equivalent of the song. Streaming from Spotify is not possible.
+        Adds the song to the playlist according to the "head" flag. If head is True,
+        the song is added to the beginning of the queue, otherwise it is added to the 
+        end of the queue. If a link is not provided, the first result from a youtube
+        search is added to the queue.
         """
+
 
         song_url = song_url.strip('<>')
 
